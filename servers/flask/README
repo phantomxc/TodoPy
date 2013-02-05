@@ -1,0 +1,5 @@
+Run the server
+
+python main.py
+
+Browse to http://localhost:8080
