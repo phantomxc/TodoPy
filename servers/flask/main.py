@@ -66,21 +66,35 @@ def return_index():
 
 @app.route('/todos/', methods=['GET', 'POST'])
 def get_create_todos():
+
     if request.method == 'GET':
         todos = []
-        for todo in query_db('select * from todos'):
+        for todo in query_db('SELECT * FROM todos'):
             todo = clean_todo(todo)
             todos.append(todo)
 
         return return_json(todos)
 
+    elif request.method == 'POST':
+        data = json.loads(request.data)
+        cur = g.db.execute('INSERT INTO todos (title, completed) VALUES (?, ?)', (data['title'], False))
+        tid = cur.lastrowid
+        g.db.commit()
+        
+        t = query_db('SELECT * FROM todos WHERE id = ?', (tid,), one=True)
+        t = clean_todo(t)
+        return return_json(t)
 
 
-
-
-@app.route('/todos/<todo>', methods=['GET', 'PUT', 'DELETE'])
+@app.route('/todos/<int:todo>', methods=['GET', 'PUT', 'DELETE'])
 def get_update_todo(todo):
-    return
+    if request.method == 'GET':
+        t = query_db('select * from todos where id = ?', (todo,), one=True)
+        t = clean_todo(t)
+        return return_json(t)
+
+    elif request.method == 'PUT':
+        data = json.loads(request.data)
 
 # Only way I could figure out how to redirect the static files
 @app.route('/static/assets/<path:filename>')
