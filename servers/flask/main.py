@@ -9,7 +9,6 @@ app = Flask(__name__)
 #------------------
 # CONFIG
 #------------------
-
 # Set a custom template directory
 app.jinja_loader = jinja2.FileSystemLoader('../../html/')
 
@@ -52,9 +51,9 @@ def clean_todo(todo):
     return todo
 
 
-def return_json(d):
+def return_json(d, status=200):
     ret = json.dumps(d)
-    return Response(ret, status=200, mimetype='application/json')
+    return Response(ret, status=status, mimetype='application/json')
 
 
 #------------------
@@ -66,7 +65,9 @@ def return_index():
 
 @app.route('/todos/', methods=['GET', 'POST'])
 def get_create_todos():
-
+    """
+    Handle listing all the todos and creating a new one
+    """
     if request.method == 'GET':
         todos = []
         for todo in query_db('SELECT * FROM todos'):
@@ -83,18 +84,35 @@ def get_create_todos():
         
         t = query_db('SELECT * FROM todos WHERE id = ?', (tid,), one=True)
         t = clean_todo(t)
-        return return_json(t)
+        return return_json(t, status=201)
 
 
 @app.route('/todos/<int:todo>', methods=['GET', 'PUT', 'DELETE'])
 def get_update_todo(todo):
+    """
+    Handle listing, updating, deleting one todo
+    """
+
     if request.method == 'GET':
-        t = query_db('select * from todos where id = ?', (todo,), one=True)
+        t = query_db('SELECT * FROM todos WHERE id = ?', (todo,), one=True)
         t = clean_todo(t)
         return return_json(t)
 
     elif request.method == 'PUT':
         data = json.loads(request.data)
+        cur = g.db.execute('UPDATE todos SET completed = ?, title = ? WHERE id = ?', (data['completed'], data['title'], data['id']))
+        g.db.commit()
+
+        t = query_db('SELECT * FROM todos WHERE id = ?', (data['id'],), one=True)
+        t = clean_todo(t)
+        return return_json(t)
+
+    elif request.method == 'DELETE':
+        cur = g.db.execute('DELETE FROM todos WHERE id = ?', (todo,))
+        g.db.commit()
+
+        return Response(status=204)
+
 
 # Only way I could figure out how to redirect the static files
 @app.route('/static/assets/<path:filename>')
