@@ -12,6 +12,7 @@ Inspired by the popular [TodoMVC](http://addyosmani.github.com/todomvc/), I woul
 - [Twisted Web](http://twistedmatrix.com/) : (pip install Twisted)
 - [Flask](http://flask.pocoo.org/) : (pip install Flask)
 - [Klein](https://github.com/twisted/klein) : (pip install klein)
+- [Tornado](http://www.tornadoweb.org) : (pip install tornado)
 
 ## Data Storage
 
